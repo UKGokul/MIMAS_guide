@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Publications</title>
+  <title>Publications & References</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
 <body>
@@ -19,27 +19,124 @@
 
   <main class="page">
     <h1>Publications & References</h1>
-    <p class="muted">Template — expand later. Group references by “used for”.</p>
+    <p class="muted">
+      Key scientific publications underlying the MIMAS model and its applications.
+      Papers are grouped by how they contribute to the model framework.
+    </p>
 
+    <!-- ====================================================== -->
     <section class="card">
-      <h2>Core model / environment</h2>
+      <h2>Core model framework & particle environment</h2>
       <ul>
-        <li>TODO: Berger & von Zahn (2002) — environment + particle transport framework</li>
+        <li>
+          <strong>Berger, U. & von Zahn, U. (2002)</strong><br />
+          <em>Icy particles in the summer mesopause region: Three-dimensional modeling of their environment and two-dimensional modeling of their transport</em><br />
+          <span class="ref-journal">Journal of Geophysical Research</span><br />
+          <span class="ref-note">
+            Foundational paper for the MIMAS particle–environment coupling, transport concepts,
+            and Lagrangian treatment of ice particles.
+          </span>
+        </li>
+
+        <li>
+          <strong>von Zahn, U. & Berger, U. (2003)</strong><br />
+          <em>Persistent ice cloud in the midsummer upper mesosphere at high latitudes: Three-dimensional modeling and cloud interactions with ambient water vapor</em><br />
+          <span class="ref-journal">Journal of Geophysical Research</span><br />
+          <span class="ref-note">
+            Establishes long-lived mesospheric ice cloud behavior and coupling to background H₂O.
+          </span>
+        </li>
       </ul>
     </section>
 
+    <!-- ====================================================== -->
     <section class="card">
-      <h2>Microphysics</h2>
+      <h2>Microphysics & thermodynamics</h2>
       <ul>
-        <li>TODO: Murphy & Koop (2005) — saturation vapour pressure (used in sub_tabelle)</li>
+        <li>
+          <strong>Murphy, D. M. & Koop, T. (2005)</strong><br />
+          <em>Review of the vapour pressures of ice and supercooled water for atmospheric applications</em><br />
+          <span class="ref-journal">Quarterly Journal of the Royal Meteorological Society</span><br />
+          <span class="ref-note">
+            Provides the saturation vapour pressure formulation used in
+            <code>sub_tabelle</code> for ice growth calculations.
+          </span>
+        </li>
       </ul>
     </section>
 
+    <!-- ====================================================== -->
     <section class="card">
-      <h2>Transport / numerics</h2>
+      <h2>Transport schemes & numerical methods</h2>
       <ul>
-        <li>TODO: Walcek scheme reference (used in sub_transwalcek)</li>
+        <li>
+          <strong>Walcek, C. J. (2000)</strong><br />
+          <em>Minor flux adjustment near mixing ratio extremes for simplified yet highly accurate monotonic calculation of tracer advection</em><br />
+          <span class="ref-journal">Journal of Geophysical Research</span><br />
+          <span class="ref-note">
+            Basis for the monotonic Eulerian advection scheme implemented in
+            <code>sub_transwalcek</code>.
+          </span>
+        </li>
       </ul>
+    </section>
+
+    <!-- ====================================================== -->
+    <section class="card">
+      <h2>MIMAS-family model studies & applications</h2>
+      <ul>
+        <li>
+          <strong>Schmidt, F., Baumgarten, G., Berger, U., Fiedler, J., & Lübken, F.-J. (2018)</strong><br />
+          <em>Local time dependence of polar mesospheric clouds: A model study</em><br />
+          <span class="ref-journal">Atmospheric Chemistry and Physics</span>
+        </li>
+
+        <li>
+          <strong>Grygalashvyly, M. et al. (2020)</strong><br />
+          <em>Influence of the polar vortex on chemical composition of the middle atmosphere: A model study</em><br />
+          <span class="ref-journal">Annales Geophysicae</span>
+        </li>
+
+        <li>
+          <strong>Grygalashvyly, M. et al. (2021)</strong><br />
+          <em>Long-term trends in the hydroxyl layer at mid-latitudes: A model study</em><br />
+          <span class="ref-journal">Journal of Atmospheric and Solar-Terrestrial Physics</span>
+        </li>
+
+        <li>
+          <strong>Lübken, F.-J., Berger, U., & Baumgarten, G. (2009)</strong><br />
+          <em>Stratospheric and solar cycle effects on long-term variability of mesospheric ice clouds</em><br />
+          <span class="ref-journal">Journal of Geophysical Research</span>
+        </li>
+
+        <li>
+          <strong>Lübken, F.-J., Berger, U., & Baumgarten, G. (2018)</strong><br />
+          <em>On the Anthropogenic Impact on Long-Term Evolution of Noctilucent Clouds</em><br />
+          <span class="ref-journal">Geophysical Research Letters</span>
+        </li>
+
+        <li>
+          <strong>Lübken, F.-J., Berger, U., & Baumgarten, G. (2018)</strong><br />
+          <em>Temperature trends in the midlatitude summer mesosphere</em><br />
+          <span class="ref-journal">Journal of Geophysical Research</span>
+        </li>
+
+        <li>
+          <strong>Vellalassery, A., Baumgarten, G., Grygalashvyly, M., & Lübken, F.-J. (2023)</strong><br />
+          <em>Greenhouse gas effects on the solar cycle response of water vapour and noctilucent clouds</em><br />
+          <span class="ref-journal">Annales Geophysicae</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ====================================================== -->
+    <section class="card">
+      <h2>Note on terminology</h2>
+      <p>
+        The term <strong>MIMAS</strong> is not always explicitly stated in publications.
+        Many studies listed here rely on the same modeling framework, physics modules,
+        and numerical infrastructure developed and maintained at IAP Kühlungsborn.
+      </p>
     </section>
   </main>
 </body>
