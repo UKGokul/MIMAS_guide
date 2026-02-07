@@ -13,6 +13,42 @@
     --radius: 8px;
 }
 
+
+.topnav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:14px 18px;
+  border-bottom:1px solid rgba(0,0,0,0.08);
+  position:sticky;
+  top:0;
+  background:#fff;
+  z-index:10;
+}
+.brand{ font-weight:700; text-decoration:none; color:inherit; }
+.navlinks a{
+  text-decoration:none;
+  color:inherit;
+  padding:8px 10px;
+  border-radius:10px;
+  opacity:0.85;
+}
+.navlinks a:hover{ opacity:1; }
+.page{
+  max-width:960px;
+  margin:0 auto;
+  padding:24px 18px 60px;
+}
+.card{
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:16px;
+  padding:16px;
+  margin:14px 0;
+}
+.muted{ opacity:0.7; }
+
+
 * {
     margin: 0;
     padding: 0;
@@ -506,4 +542,5 @@ body {
   background:transparent;
   border:1px solid rgba(0,0,0,0.2);
 }
+
 
