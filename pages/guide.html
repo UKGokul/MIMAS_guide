@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIMAS Model Guide</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="guide-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Model Flow Stages</h2>
+                <input type="text" class="search-box" placeholder="Search stages..." aria-label="Search stages">
+            </div>
+            
+            <!-- Mobile dropdown selector -->
+            <select class="stage-selector" aria-label="Select stage">
+                <option value="">Select a stage...</option>
+            </select>
+            
+            <!-- Desktop stage list -->
+            <ul class="stage-list">
+                <!-- Stages will be populated by JavaScript -->
+            </ul>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Content will be populated by JavaScript -->
+        </main>
+    </div>
+    
+    <!-- Fortran Snippet Modal -->
+    <div class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Subroutine Definition</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre><!-- Snippet will be inserted here --></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../assets/js/app.js"></script>
+</body>
+</html>
