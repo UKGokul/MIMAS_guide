@@ -1,0 +1,137 @@
+{
+  "writegrid": {
+    "name": "writegrid",
+    "calls": [
+      "check"
+    ],
+    "snippet": "SUBROUTINE writegrid(outfile,xpos,ypos,zpos,time)\n      USE netcdf\n      USE common_netcdf\n      IMPLICIT NONE\n      REAL(KIND=4), DIMENSION(nbneu), INTENT(IN) :: xpos\n      REAL(KIND=4), DIMENSION(igitneu), INTENT(IN) :: ypos\n      REAL(KIND=4), DIMENSION(kgitneu), INTENT(IN) :: zpos\n      REAL(KIND=4), DIMENSION(tg), INTENT(IN) :: time\n\t  \n      INTEGER :: t_dimid\n      INTEGER :: t_varid\n \t  \n      INTEGER(KIND=4) :: ncid, x_dimid, y_dimid, z_dimid\n      INTEGER(KIND=4) :: x_varid, y_varid, z_varid\n      INTEGER(KIND=4) :: varid1, varid2, varid3, varid4\n      INTEGER(KIND=4) :: varid5, varid6, varid7\n      INTEGER(KIND=4) :: varid8, varid9, varid10, varid11\n      INTEGER(KIND=4) :: varid12, varid13, varid14, varid15\n      INTEGER(KIND=4) :: varid16\n\n      INTEGER(KIND=4), DIMENSION(4) :: dimids1, dimids2\n      INTEGER(KIND=4), DIMENSION(4) :: dimids3, dimids4\n      INTEGER(KIND=4), DIMENSION(4) :: dimids5, dimids6\n      INTEGER(KIND=4), DIMENSION(4) :: dimids7, dimids8\n      INTEGER(KIND=4), DIMENSION(4) :: dimids9, dimids10\n      INTEGER(KIND=4), DIMENSION(4) :: dimids11,dimids12\n      INTEGER(KIND=4), DIMENSION(4) :: dimids13,dimids14\n      INTEGER(KIND=4), DIMENSION(4) :: dimids15,dimids16 \n\t  \n      CHARACTER(LEN=48), INTENT(IN) :: outfile\n..."
+  },
+  "check": {
+    "name": "check",
+    "calls": [],
+    "snippet": "SUBROUTINE check(istatus)\n      USE netcdf\n      IMPLICIT NONE\n      INTEGER, INTENT (IN) :: istatus\n      IF (istatus /= nf90_noerr) THEN\n      write(*,*) TRIM(ADJUSTL(nf90_strerror(istatus)))\n      END IF\n      END SUBROUTINE check\n!:======================================================================\n\n\nc_______________________________________________________________________\nc"
+  },
+  "schreibe_beta0": {
+    "name": "schreibe_beta0",
+    "calls": [
+      "sleep"
+    ],
+    "snippet": "SUBROUTINE schreibe_beta0(tu)\n\n      USE common_const\n      USE common_eis\n      USE common_h2o\n      USE common_uvwtd\n      USE common_uvwtd48\n      USE common_netcdf\n\n      implicit none\nCC      integer*4 i_jahr,i_monat,i_tag,i_hemi\n      integer*4 j,i,k,n,neis,nstaub,icross,ios,tu\nCC      integer record_number, varnum, ngridp\n      real*4 volufak,xpi,radi3,radi2,volume,rhoicecgs !,d_std\n\n      real*4 xneis(nbneu,igitneu,kgitneu)\n      real*4 xnstaub(nbneu,igitneu,kgitneu)\n      real*4 eisradius(nbneu,igitneu,kgitneu)\n      real*4 eisradiuseff(nbneu,igitneu,kgitneu)\n      real*4 reff_zaehler(nbneu,igitneu,kgitneu) \n      real*4 reff_nenner(nbneu,igitneu,kgitneu)\n      real*4 betaorg(nbneu,igitneu,kgitneu) \n      real*4 ext_coef126(nbneu,igitneu,kgitneu)\n      real*4 ext_coef200(nbneu,igitneu,kgitneu)\n      real*4 ext_coef532(nbneu,igitneu,kgitneu)\n      real*4 ext_coef1000(nbneu,igitneu,kgitneu)\n      real*4 ext_coef3000(nbneu,igitneu,kgitneu)\n\n      real*4 pmseorg(nbneu,igitneu,kgitneu)\n      real*4 densice(nbneu,igitneu,kgitneu)\n..."
+  },
+  "set_monate": {
+    "name": "set_monate",
+    "calls": [],
+    "snippet": "SUBROUTINE set_monate (ntage_monat,max_doy,i_jahr)\n      integer ntage_monat(12),max_doy,i_jahr,mschalt\n\n      ntage_monat(1) = 31\n      ntage_monat(2) = 28\n      ntage_monat(3) = 31\n      ntage_monat(4) = 30\n      ntage_monat(5) = 31\n      ntage_monat(6) = 30\n      ntage_monat(7) = 31\n      ntage_monat(8) = 31\n      ntage_monat(9) = 30\n      ntage_monat(10) = 31\n      ntage_monat(11) = 30\n      ntage_monat(12) = 31\n      mschalt = mod(i_jahr,4)   ! falls modulo = 0  --> schaltjahr\nc                                z.B 2000 ist schaltjahr\n\n      if (mschalt.eq.0) ntage_monat(2) = 29  ! schaltjahr\n      max_doy=365\n      if(ntage_monat(2).eq.29) max_doy=366\n\n      END SUBROUTINE set_monate"
+  },
+  "sub_transwalcek": {
+    "name": "sub_transwalcek",
+    "calls": [
+      "sub_advec1d"
+    ],
+    "snippet": "SUBROUTINE sub_transwalcek (dx,dy,dz,um,vm,wm,hm)\nc-----------------------------------------------------------------------\n      real*4 q0i(0:igitneu+1),qni(igitneu), ui(0:igitneu),\n     &        den0i(igitneu),den1i(igitneu),dd0i(0:igitneu)\n      real*4 q0j(0:nbneu+1),qnj(nbneu), uj(0:nbneu),\n     &        den0j(nbneu),den1j(nbneu),dd0j(0:nbneu)\n      real*4 q0k(0:kgitneu-lunten),qnk(kgitneu-lunten-1),\n     &        uk(0:kgitneu-lunten-1),\n     &        den0k(kgitneu-lunten-1),den1k(kgitneu-lunten-1),\n     &        dd0k(0:kgitneu-lunten-1)\n      real*4 hm(nbneu,igitneu,kgitneu)\n      real*4 um(nbneu,igitneu,kgitneu)\n      real*4 vm(nbneu1,igitneu,kgitneu)\n      real*4 wm(nbneu,igitneu,kgitneu1)\n      real*4 dx(nbneu),d0,deltax,dy,dz\n      integer i,j,k,ip1,im1,iperiod,kk\n\nc Parallelisierung von sub_transwalcek hat das Programm gebremst\nc-----------------------------------------------------------------------\n      d0 = 1.\nc-----------------------------------------------------------------------\n!       den0 = -99999.\n!       den1 = -99999.\n!       dd0  = -99999.\n!       q0   = -99999.\n!       qn   = -99999.\nc-----------------------------------------------------------------------\nc-----------  ost - west transport\n..."
+  },
+  "sub_advec1d": {
+    "name": "sub_advec1d",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_advec1d(ix,ix1,iperiod,\n     &                            dxx,u,den0,den1,dd0,q0,qn)\nc     This subroutine calculates change in mixing ratio (q0) during time\nc     step dt due to advection along a grid idim in length. Mixing ratios\nc     from host code (c) are loaded into q0 array, which is updated to qn.\nc     Velocities (u) and fluxes (flux) are specified at cell faces, having\nc     dimensions 0:idim. u, q0, qn, dxx and flux indices defined here:\nc     Fluid densities flowing across each face (dd0), & beginning and end\nc     of each dimension step (den0, den1) are defined in HOST CODE\nc i grid->   |   1   |   2   |  i-1  |   i   | .. .. |   idim   | <- host grid\nc u-array-> u(0)    u(1)    u(2)   u(i-1)   u(i)             u(idim)\nc flux ->  flux(0)               flux(i-1) flux(i)          flux(idim)\nc dd0  ->   dd0(0)                dd0(i-1)  ddo(i)           dd0(idim)\nc c-array->  |  c(1) |  c(2) | c(i-1)|  c(i) | .. .. |  c(idim) | mixing ratio\nc dxx-arry-> |  dx1  |  dx2  | dxi-1 |  dxi  | .. .. |  dxidim  |\nc density->  |  dd1  |  dd2  | ddi-1 |  ddi  | .. .. |  ddidim  |\nc                   q0 defined along 0 - idim+1 cells:\nc    |       |   qn  |   qn  |   qn  |   qn  |       |     qn   |        |\nc    |   q0--|---q0--|---q0--|---q0--|---q0--| .. .. |----q0----|---q0   |\nc    |   0   |   1   |   2   |  i-1  |   i   |       |   idim   |  idim+1|\nc   lower BC |                <---  q0 grid  --->               | upper BC\nc           Boundary conditions are stored in q0 cells 0 & idim+1\nc  im orginal ist dxx(ix)   sogar variabel !!!\nc-----------------------------------------------------------------------\nc\nc q0 (0: ix+1) input mixing ratio with two additional boundary values\nc dd0(0: ix) input fluid density flowing between each grid cell\nc            remains constant for all dimensions at the initial\nc            fluid density of the 1st dimension of a 2-3 D calculation\n..."
+  },
+  "sub_lesedyn": {
+    "name": "sub_lesedyn",
+    "calls": [
+      "sleep"
+    ],
+    "snippet": "SUBROUTINE sub_lesedyn (ihemi,ijahr_fixdyn,\n     &                        ijahr,imonat,itag,istd,um,tm,dm,vm,wm,zm)\nc-----------------------------------------------------------------------\n!       USE nrtype\n\n      integer ::ijahr,ijahr_fixdyn,imonat,itag,istd,ihemi,i,j,k\n\nc  neu\n      real*4 dm_out_1run_fix(31,kgitneu,nbneu)\n      real*4 um_out_1run_fix(31,kgitneu,nbneu)\n      real*4 vm_out_1run_fix(31,kgitneu,nbneu)\n      real*4 wm_out_1run_fix(31,kgitneu,nbneu)\n      real*4 tm_out_1run_fix(31,kgitneu,nbneu)\n      real*4 zm_out_1run_fix(31,kgitneu,nbneu)\n\n      real*4 dm_out_6run(31,kgitneu,nbneu)\n      real*4 um_out_6run(31,kgitneu,nbneu)\n      real*4 vm_out_6run(31,kgitneu,nbneu)\n      real*4 wm_out_6run(31,kgitneu,nbneu)\n      real*4 tm_out_6run(31,kgitneu,nbneu)\n      real*4 zm_out_6run(31,kgitneu,nbneu)\n\n      real*4 dm_out_6run_fix(31,kgitneu,nbneu)\n      real*4 um_out_6run_fix(31,kgitneu,nbneu)\n      real*4 vm_out_6run_fix(31,kgitneu,nbneu)\n      real*4 wm_out_6run_fix(31,kgitneu,nbneu)\n      real*4 tm_out_6run_fix(31,kgitneu,nbneu)\n      real*4 zm_out_6run_fix(31,kgitneu,nbneu)\nc----\n\n..."
+  },
+  "sub_leseh2o_zprinit": {
+    "name": "sub_leseh2o_zprinit",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_leseh2o_zprinit \nc-----------------------------------------------------------------------\n\n!       USE nrtype\n      USE common_h2o\n      open (98,status='old',form='unformatted',file=H2OINIT)\nc  \nc     166 hoehen ab 72,0 72,2 72,4  ... 104,8 105,0 km als druckhoehen\nc     f\u00fcr breite alomar \n\n      read(98) zpress_init\n      read(98) zpress_init_h2o\n      close (98)\n\n\n      END SUBROUTINE sub_leseh2o_zprinit \nc-----------------------------------------------------------------------\nc\nc\nc-----------------------------------------------------------------------"
+  },
+  "sub_maxmin": {
+    "name": "sub_maxmin",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_maxmin (um,vm,wm) \nc-----------------------------------------------------------------------\n!       USE nrtype\n      USE common_const\n      real*4, dimension(nbneu,igitneu,kgitneu)  :: um\n      real*4, dimension(nbneu1,igitneu,kgitneu) :: vm\n      real*4, dimension(nbneu,igitneu,kgitneu1) :: wm\n      real*4 umax,ucour_max,vmax,vcour_max,wcour_max,wmax\n      integer i,j,k\nc-----------------------------------------------------------------------\n      umax=0.\n      do k=1,kgitneu\n      do i=1,igitneu\n      do j=1,nbneu\n         if (abs(um(j,i,k)/dx(j)).gt.umax) umax=abs(um(j,i,k)/dx(j))\n         enddo\n         enddo\n         enddo\n      ucour_max = dttrans*umax\nc-----------------------------------------------------------------------\n\n      vmax=0.\n      do k=1,kgitneu\n      do i=1,igitneu\n      do j=1,nbneu1\n         if (abs(vm(j,i,k)/dy).gt.vmax) vmax=abs(vm(j,i,k)/dy)\n         enddo\n         enddo\n         enddo\n      vcour_max = dttrans*vmax\n..."
+  },
+  "sub_zenit": {
+    "name": "sub_zenit",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_zenit (ntg,itag1,ihemi)\nc\nc  ntg: zeitschritt waehrend des tages\nc   vorsicht ntg <-> dttrans muss passen\nc\n!       USE nrtype\n      USE common_const\n      USE common_h2o\n      implicit none\n\nc-----------------------------------------------------------------------\n      real*4 skh,za,zb,zd,zccc,zf,zg,day,dek,day16,day2,dayl,\n     &       breite,ortzeit,rncom,stuwi,coschi,chi,x,\n     &       y,erfy,arg,zeit,zgeo_86,sunris_86\n      integer i,j,k,itag,itag1,ihemi,ntg\n\n      data skh /7./,zgeo_86/86./\n      data za/1.0606963/ ,zb/0.55643831/ ,zd/1.7245609/  ,\n     *     zccc/1.0619896/,zf/0.56498823/,zg/0.06651874/\nc-----------------------------------------------------------------------\n\n       sunris_86 = acos(6373./(6373.+zgeo_86))*\n     &           180./pi + 90.\nc      print*,' zgeo_86, sunris_86 :',zgeo_86, sunris_86\n\nc-----------------------------------------------------------------------\nc     vorlauf = 120+15 tage   bis 15.mai\nc-----------------------------------------------------------------------\n      itag=itag1\n      if (ihemi.eq.1) itag=mod(itag1+182,365)\n..."
+  },
+  "sub_photolyse": {
+    "name": "sub_photolyse",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_photolyse \n     &                     (mnudge,delta_t,ihemi,itag1,xlyman_obs)\n\n      USE common_h2o\n      USE common_uvwtd\n      implicit none\n      \n      real*4 gesamt_photo_h2o,photodiss_rate_h2o,photodiss_cross_h2o\n      real*4 bfak(nbneu),xnudge,faknudge,xno2\n      real*4 hfak(kgitneu),so2neu(nbneu,igitneu)\n      real*4  xlyman_obs(366) \nc-----------------------------------------------------------------------\n      integer k,i,j,ihemi,itag1,itag,mnudge\n      real*4 delta_t,xnluft,xnh2o,\n     &       b1_h2o,c1_h2o,b2_h2o,c2_h2o,b3_h2o,c3_h2o,\n     &       d_disso_o2_ev,d_disso_o2_erg,fak_energie,\n     &       epslyman,hplank,clicht,phitop_ly,xlamda_ly,\n     &       exply1,exply2,exply3,reduct_h2o,wert\n\nc      data photodiss_cross__h2o/1.4e-17/   ! 1.4e-17 cm**2 fuer Solomon u. Brasser buch S. 227\n      data photodiss_cross_h2o/1.53e-17/   ! 1.53e-17 cm**2 aus Chabrillat u. Kockarts, 1997, GRL\nc=======================================================================\nc     lyman alpha constanten  u. sol max - min faktoren\n\n      itag=itag1\n      if (ihemi.eq.1) itag=mod(itag1+182,365)\n\n      phitop_ly = xlyman_obs(itag) * 1.e11   ! anzahl photonen  ! cgs - system (cm^-2 * sec^-1)\nc      phitop_ly = phitop_ly * ellipsefak(itag)\n\n..."
+  },
+  "sub_ausdruck": {
+    "name": "sub_ausdruck",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_ausdruck(feld)\n\n      real*4 feld(nbneu,igitneu,kgitneu)\n      integer*4 i,j,k\nc-----------------------------------------------------------------------\n\n      i=1\n      do k=1,kgitneu,2\n       write(6,1000) k,(feld(j,i,k),j=1,53,5),k\n      enddo\n 1000 format(i4,2x,11(f6.3,1x),2x,i3)\n      return\n      END SUBROUTINE sub_ausdruck\nc-----------------------------------------------------------------------\nc\nc\nc-----------------------------------------------------------------------"
+  },
+  "sub_diffu_h2o": {
+    "name": "sub_diffu_h2o",
+    "calls": [
+      "tridiag"
+    ],
+    "snippet": "SUBROUTINE sub_diffu_h2o (hm,dz,turbkzz)\n      implicit none\n!       integer lunten,kgitneu,igitneu,nbneu\n!       parameter (lunten=22,kgitneu=163,igitneu=120,nbneu=53)\n\n      real*4 hm(nbneu,igitneu,kgitneu)\n      real*4 turbkzz(kgitneu),a(kgitneu),b(kgitneu),c(kgitneu),\n     &          r(kgitneu),u(kgitneu)\n\n      real*4 dz,alpha\n      integer i,j,k\n\nc\nc alle 45 sec zeitschritt !!!\nc\nc  crank-nicholson\nC Hier parallelisieren. parallel do auf i mit private ...\n      do i=1,igitneu\n       do j=3,nbneu\n        do k=1,kgitneu\n         alpha = turbkzz(k)*dttrans_2/(dz*dz) ! alt\n         a(k)= - alpha\n         b(k)= 1.+2.*alpha\n         c(k)= - alpha\n         r(k)= hm(j,i,k)\n        enddo\n        a(1)=0.\n        c(kgitneu)=0.\n\n        call tridiag(a,b,c,r,u,kgitneu)\n..."
+  },
+  "tridiag": {
+    "name": "tridiag",
+    "calls": [],
+    "snippet": "SUBROUTINE tridiag (a,b,c,r,u,n)\n\n      integer j,n\n      real*4 a(n),b(n),c(n),r(n),u(n)\n      real*4 gam(NMAX),bet\n\n      if (b(1).eq.0.) pause 'tridag: rewrite equtios'\n      bet = b(1)\n      u(1)=r(1)/bet\n\n      do j=2,n\n         gam(j)=c(j-1)/bet\n         bet=b(j)-a(j)*gam(j)\n         if (bet.eq.0.) pause 'tridag failed'\n         u(j)=(r(j)-a(j)*u(j-1))/bet\n      enddo\n      do j=n-1,1,-1\n         u(j)=u(j)-gam(j+1)*u(j+1)\n      enddo\n      return\n      end\nc-----------------------------------------------------------------------\nc\nc\nc-----------------------------------------------------------------------"
+  },
+  "sub_init_global": {
+    "name": "sub_init_global",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_init_global(i_jahr,xlyman_obs,scale_ch4,unix_time)\n\n!       USE nrtype\n      USE common_const\n      USE common_h2o\n      implicit none\nc-----------------------------------------------------------------------\n      integer*4, parameter :: kgitneu2d=286\n      integer*4 :: i,ii,j,k,kk,k2,i_jahr,idim,mschalt, x1, x2\n      real*4    :: xwert,zuntenkm,dzkm,faktkzz,wert,a1,a2,b1,b2,\n     &             ch4_akt,ch4_2008,h2oanteil_2008,h2oanteil_akt,\n     &             fr_alpha,basis_h2o,h2o_true,scale_ch4,unix_time\n\n      real*4, dimension(kgitneu2d) :: turbkzz2d,wturb2d\n      real*4  xlyman_obs(366)\n      character*44    char_lyman\n      character*4    char_year\n      character*100  c_dummy\n\nc      zkm = 0.1 km ist 77.8 km also k=1\nc      bis         k=kgitneu = 163\n\n      do j=1,nbneu\n       xwert = 37.5 +  float(j-1)\n       dx(j)=2.*pi/float(igitneu)*rearth*cos(xwert*pi/180.)\n      enddo\n      dzkm=0.1\n      zuntenkm=77.8\n      do k=1,kgitneu\n         zgeo(k)=zuntenkm+float(k-1)*dzkm\n..."
+  },
+  "sub_init_staub": {
+    "name": "sub_init_staub",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_init_staub (nstart,bbreite,bsum,j_mesopause,\n     &                                               j_zpress86km)\n!       USE nrtype\n      use ifport\n      USE common_const\n      USE common_eis\n\nc\nc    25 radi-klassen a 0.1 nm ab 1.0 nm\nc\n      implicit none\n      integer, dimension(nbneu)   :: j_mesopause,j_zpress86km\n      integer, dimension(10,25)   :: nhunt\n      integer, dimension(5)       :: nhisto\n      integer                     :: i,k1,ii,jj,kk,kk1,kk2\n      integer nstart,nklasse,nsum,nzahl,nnn,nklasse_haupt,\n     &        nklasse_zwi,nwert1,nwert2,nwert3,nwert4,\n     &        nwert5,n,nwerta,nwertb\n\n      real*4, dimension(25)   :: xhisto\n      real*4, dimension(35)  :: bbreite,bsum   ! neu\n      real*4 wert,fak,rando,xdiff,rando1,scalewert,sum,\n     &       wert1,wert2,wert3,wert4,wert5,sfactor,invfactor\nc-----------------------------------------------------------------------\nc      data xhisto/1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,\nc     &            2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,\nc     &            3.0,3.1,3.2,3.3,3.4,3.5,3.6/\n\n      data xhisto/0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,    !  vorher ab 0.8\n     &            2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,\n..."
+  },
+  "sub_tracertransp": {
+    "name": "sub_tracertransp",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_tracertransp\n!       USE nrtype\n      use ifport\n      USE common_const\n      USE common_tab\n      USE common_eis\n      USE common_uvwtd\n      USE common_h2o\n\n      implicit none\n      integer*4     intel_no, intel_offset\n      integer*4     i,j,k,n,itemp,nl,j0,j1,j2,i0,i1,i2,ii,jj,kk\n      real*4, dimension(ntrac) :: change_n\n      real*4, dimension(nbneu) :: ax\n      real*4, dimension(nbneu,igitneu,kgitneu)  :: work1,change\n      real*4 eps,aconst1,ay,az,rwert0,tback,tp,work1akt,volufak,\n     &       drdt,rwert1,vpsatt_tp,backgr,dsum,wfall,wrando,\n     &       satt_tp,dback,dreferenz\n\nc-----------------------------------------------------------------------\nc      print*,' rearth = 6366197.0 ',rearth\nc      print*,' gmeso  = 9.55 ',gmeso\nc      print*,' xkbolz = 1.3805e-23 ',xkbolz\nc      print*,' xmh2o  = 2.99e-26 ',xmh2o  !  kg\nc      print*,' xmair  = 4.845e-26 ',xmair\nc      print*,' rhoice = 932.0 ',rhoice   !  kg/m**3\nc-----------------------------------------------------------------------\nc   xnluft  : anzahl luft molekuele   pro cm**3\nc   xnh2o   : anzahl h2o-molekuele    pro cm**3\n      change = 0.    ! anz wasser molekuele\n..."
+  },
+  "sub_tabelle": {
+    "name": "sub_tabelle",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_tabelle\n\n!       USE nrtype\n      USE common_const\n      USE common_tab\n\n      implicit none\n      real*4  breite,rwert0,sigma,tp,wert,alt,v1,v2,v3,scale\n      integer j,k,iradi,itemp\nc-----------------------------------------------------------------------\n      print*,' rearth = 6366197.0 ',rearth\n      print*,' gmeso  = 9.55 ',gmeso\n      print*,' xkbolz = 1.3805e-23 ',xkbolz\n      print*,' xmh2o  = 2.99e-26 ',xmh2o\n      print*,' xmair  = 4.845e-26 ',xmair\n      print*,' rhoice = 932.0 ',rhoice\nc-----------------------------------------------------------------------\nc\nc      wachstum\nc\nc      drdt =  1.e9*0.83*(satt_tp-1.)*vpsatt_tp*\nc     &             sqrt(xmh2o/(2.*pi*xkbolz*tp)) / rhoice\n\nc\nc  kelvin formel:     faktkelvin_tab  0.1 - 30 nm = (90 radien, 71 temp)\nc\nc              sigma=0.12/(1.+2.*0.15/rwert0)\nc              fakt=exp(1.e9*2.0*xmh2o*sigma/\nc     &\t\t\t  (rhoice*xkbolz*tp*rwert0))\nc-----------------------------------------------------------------------\n..."
+  },
+  "sub_dmget": {
+    "name": "sub_dmget",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_dmget (ihemi,ijahr,imonat,itag)\nc-----------------------------------------------------------------------\nc     LIMA_PFAD    './LC33/LIMA-ICE/backgr/'\n     \n      integer :: ihemi,ijahr,imonat,itag\n      \n      character*100 charname\n      character*18 input_pfad_2\n      character*18 input_pfad_3\n      character*18 input_pfad_4\n\n      if (ihemi.eq.1) input_pfad_3='.*.hem_s_icegrid &'\n      if (ihemi.eq.2) input_pfad_3='.*.hem_n_icegrid &'\n      if (ihemi.eq.1) input_pfad_4='.*.zpr_s_icegrid &'\n      if (ihemi.eq.2) input_pfad_4='.*.zpr_n_icegrid &'\n\n      write(input_pfad_2,125) ijahr,imonat,ijahr,imonat,itag\n  125 format(I4.4,'/',I2.2,'/',I4.4,'-',I2.2,'-',I2.2)\n\n      charname = LIMA_PFAD // input_pfad_2 // input_pfad_3\n      print*,'dmget von ', charname\n      res = SYSTEM('dmget '//charname)    !  res = result\n\n      charname = LIMA_PFAD // input_pfad_2 // input_pfad_4\n      print*,'dmget von ', charname\n      res = SYSTEM('dmget '//charname)    !  res = result\n\n      return\n      END SUBROUTINE sub_dmget\nc\n..."
+  },
+  "sub_dmput": {
+    "name": "sub_dmput",
+    "calls": [],
+    "snippet": "SUBROUTINE sub_dmput (ihemi,ijahr,imonat,itag)\nc-----------------------------------------------------------------------\nc     LIMA_PFAD    './LC33/LIMA-ICE/backgr/'\n     \n      integer :: ihemi,ijahr,imonat,itag\n      \n      character*100 charname\n      character*18 input_pfad_2\n      character*18 input_pfad_3\n      character*18 input_pfad_4\n\n      if (ihemi.eq.1) input_pfad_3='.*.hem_s_icegrid &'\n      if (ihemi.eq.2) input_pfad_3='.*.hem_n_icegrid &'\n      if (ihemi.eq.1) input_pfad_4='.*.zpr_s_icegrid &'\n      if (ihemi.eq.2) input_pfad_4='.*.zpr_n_icegrid &'\n\n      write(input_pfad_2,125) ijahr,imonat,ijahr,imonat,itag\n  125 format(I4.4,'/',I2.2,'/',I4.4,'-',I2.2,'-',I2.2)\n\n      charname = LIMA_PFAD // input_pfad_2 // input_pfad_3\n      print*,'dmput von ', charname\n      res = SYSTEM('dmput -r '//charname)    !  res = result\n\n      charname = LIMA_PFAD // input_pfad_2 // input_pfad_4\n      print*,'dmput von ', charname\n      res = SYSTEM('dmput -r '//charname)    !  res = result\n\n      return\n      END SUBROUTINE sub_dmput\nc\n..."
+  },
+  "sub_h2oinit_zpr_to_zgeo": {
+    "name": "sub_h2oinit_zpr_to_zgeo",
+    "calls": [
+      "sub_intpol"
+    ],
+    "snippet": "SUBROUTINE sub_h2oinit_zpr_to_zgeo (zm)\nc-----------------------------------------------------------------------\n      USE common_h2o\n\n      real*4 zm(nbneu,igitneu,kgitneu)\n      real*4 zpressakt(kgitneu)\n      real*4 fneu(kgitneu)\nc-----------------------------------------------------------------------\n\n\nc      do k=1,kgitzpr\nc      print*,k,zpress_init(k),zpress_init_h2o(k)\nc      enddo\n\n      do j=1,nbneu\n      do i=1,igitneu\n      do k=1,kgitneu\n         zpressakt(k)=zm(j,i,k)\n      enddo\n\n      call sub_intpol(kgitzpr,zpress_init,zpress_init_h2o,\n     &                kgitneu,zpressakt,fneu)\n\n      do k=1,kgitneu\n         hminit3d(j,i,k)=fneu(k)\n      enddo\n\n      enddo\n      enddo\n\n..."
+  },
+  "sub_intpol": {
+    "name": "sub_intpol",
+    "calls": [
+      "sub_yspline",
+      "sub_raspl1"
+    ],
+    "snippet": "subroutine sub_intpol(n,x,y,ni,xi,yi)\nc=======================================================================\n      implicit none\nc-----------------------------------------------------------------------\n      integer   n,ni,i\n      real*4    x(n),y(n),xi(ni),yi(ni),\n     &          p(380),q(380),y1(380),\n     &          a(380),b(380),c(380),d(380)\n      real*4 ps\nc-----------------------------------------------------------------------\n      ps=4.1\n      do 10 i=1,n\n            p(i)=ps\n            q(i)=ps\n  10        continue\nc\nc\n      y1(1)=(y(2)-y(1))/(x(2)-x(1))\n      y1(n)=(y(n)-y(n-1))/(x(n)-x(n-1))\n      call sub_raspl1(n,x,y,p,q,y1,a,b,c,d)\nc\n      do 20 i=1,ni\n      call sub_yspline(n,x,xi(i),a,b,c,d,yi(i),p,q)\n 20   continue\nc\n      return\n      end\nc\nc\nc\n..."
+  },
+  "sub_yspline": {
+    "name": "sub_yspline",
+    "calls": [],
+    "snippet": "subroutine sub_yspline(n,x,xwert,a,b,c,d,ywert,p,q)\n      real*4    x(380),a(380),b(380),c(380),d(380),\n     *          p(380),q(380)\n\n      i=1\n 11   if(xwert.le.x(i+1) )         goto 10\n      i=i+1\n      if(i.eq.n)                  goto 8\n                                  goto 11\n 8    i=n-1\n 10   t=(xwert-x(i))/(x(i+1)-x(i))\n      u=1.-t\nc\n      ywert=a(i)*u+b(i)*t+c(i)*u*u*u/(p(i)*t+1.)+d(i)*t*t*t/(\n     &q(i)*u+1.)\n      return\n      end\nc\nc\nc"
+  },
+  "sub_raspl1": {
+    "name": "sub_raspl1",
+    "calls": [],
+    "snippet": "subroutine sub_raspl1(n,x,y,p,q,y1,a,b,c,d)\nc\n      real*4    x(n),y(n),p(380),q(380),y1(380),\n     &          a(380),b(380),\n     &          c(380),d(380)\n      n1=n-1\n      c(1)=0.\n      d(1)=0.\nc\n      do 2 k=1,n1\n           j2=k+1\n           pp=p(k)\n           qq=q(k)\n           pp2=pp*(pp+3.)+3.\n           qq2=qq*(qq+3.)+3.\n           p22=2.+pp\n           q22=2.+qq\n           a(k)=x(j2)-x(k)\n           h=1./a(k)\n           b(k)=1./(p22*q22-1.)\n           h2=h*b(k)\n           r2=h*h2*(y(j2)-y(k))\n           if(k.eq.1)                               goto 1\n           hq=h1*qq1\n           hp=h2*pp2\n           z=1./(hq*(p21-c(j1))+hp*q22)\n           c(k)=z*hp\n           h=r1*qq1*(1.+p21)+r2*pp2*(1.+q22)\n           if(k.eq.2)   h=h-hq*y1(1)\n           if(k.eq.n1)  h=h-hp*y1(n)\n..."
+  }
+}

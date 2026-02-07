@@ -1,0 +1,281 @@
+[
+  {
+    "id": 1,
+    "title": "Main program starts + defines the simulation window",
+    "overview": "The program (PROGRAM walcek) first defines:\nyear to simulate (i_jahr)\na fixed \u201cdynamics year\u201d for winds (i_jahr_fixdyn = 1976)\nseason limits (start/end month/day)\ngrid sizes (lat, lon, vertical) and the base time step (dttrans = 90 s)\nThis is basically: \u201cwhat time period am I running, and what resolution am I using?\u201d",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "dttrans"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Calendar setup",
+    "overview": "It calls set_monate(...) to determine:\nnumber of days per month\nday-of-year indexing (max_doy)\nThis is needed because later the model loops through month/day/hour.",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "set_monate"
+    ],
+    "variables": [
+      "Not identified yet"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Global initialization (reads constant input files)",
+    "overview": "sub_init_global(i_jahr, xlyman_obs, scale_ch4) loads/derives \u201cglobal constants and climatologies\u201d such as:\neddy diffusion profile (CTURBKZZ)\nbackscatter-related constants (CBACKSCATTER532)\nEarth geometry ellipse (CELLIPSE_EARTH)\nLyman-alpha or UV proxy (\u201cChar_lyman\u201d / xlyman_obs)\nCH\u2084 dataset (\u201cCH4_1861_2008\u201d) \u2192 used to scale H\u2082O production via CH\u2084 oxidation (scale_ch4)\nSo the model is setting the background physics knobs before any time stepping.",
+    "science_view": "Vertical turbulent diffusion redistributes water vapor based on atmospheric stability. Solar UV radiation dissociates water vapor molecules, affecting H\u2082O concentrations.",
+    "relevant_subroutines": [
+      "sub_init_global"
+    ],
+    "variables": [
+      "turbkzz"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Read initial 1D H\u2082O profile",
+    "overview": "sub_lesseh2o_zprinit reads H2OINIT, which is a 1D vertical water vapor profile on a different vertical coordinate (166 levels).\nThis is the initial \u201cseed\u201d H\u2082O which will be mapped onto the full 3D grid later.",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "rinit"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Read dynamics from LIMA for the start time",
+    "overview": "sub_lesedyn(...) reads the dynamical background fields on the model grid:\nwinds (u, v, w)\ntemperature (T)\ndensity\nvertical coordinate (z)\nImportant design note in your diagram:\nwinds come from the fixed dynamics year (1976),\nwhile T, density, z can correspond to the current running year.\nThen the model optionally smooths vertical wind near polar latitudes.",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "sub_lesedyn"
+    ],
+    "variables": [
+      "Not identified yet"
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Numerical safety check (CFL / Courant condition)",
+    "overview": "sub_maxmin(um1, vm1, wm1) checks max wind speeds and ensures the Courant number \u2264 1 (stability condition). If not satisfied, the run stops.\nThis is: \u201care my dt and grid spacing stable for advection?\u201d",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere.",
+    "relevant_subroutines": [
+      "check",
+      "sub_maxmin"
+    ],
+    "variables": [
+      "um1",
+      "vm1",
+      "wm1"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Initialize the 40 million dust particles (condensation nuclei)",
+    "overview": "sub_init_staub(nstart, ...) creates the full particle ensemble:\narrays xfeld, yfeld, zfeld for particle positions\nrinit initial radii (1.2\u20133.7 nm bins)\nrfeld current radius (starts as rinit)\nlocation: poleward of 55\u00b0N and within \u00b11 km of mesopause region\nThis is the \u201cbig bang\u201d for the Lagrangian part of the model.",
+    "science_view": "Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "sub_init_staub"
+    ],
+    "variables": [
+      "xfeld",
+      "yfeld",
+      "zfeld",
+      "rfeld",
+      "rinit"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Restart / output bootstrapping",
+    "overview": "If nstart = 0 (fresh run):\nit creates a restart-like file CRINIT and writes initial particle states\nIf it\u2019s a restart:\nit reads particle state from files (e.g., .40md19 style) and reads hm (H\u2082O field) from .hd19 files\nSo before time stepping, the model decides:\n\u201cstart from scratch?\u201d or \u201ccontinue from saved state?\u201d",
+    "science_view": "Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "hm",
+      "rinit"
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Precompute microphysics lookup tables",
+    "overview": "sub_tabelle is called once early to precompute tables like:\nsaturation vapor pressure over plane ice (P\u03b1)\nKelvin factors across temperature and radius ranges\nhelper terms for growth rate / sedimentation computations\nThis is a performance trick: microphysics is expensive, so it tabulates needed functions.\nNow the real model propagation begins (the nested loops)",
+    "science_view": "Ice nucleation occurs on dust particles when supersaturation conditions are met. Saturation vapor pressure depends on temperature and particle curvature (Kelvin effect). Ice particles fall due to gravitational settling, removing water from upper atmosphere.",
+    "relevant_subroutines": [
+      "sub_tabelle"
+    ],
+    "variables": [
+      "Not identified yet"
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Loop over season \u2192 days \u2192 hours",
+    "overview": "The run enters nested loops:\nmonths in [start..end]\ndays in each month\nhours of day (i_std from 1..24)\nEverything from here repeats every timestep/hour.\nInside each model hour: H\u2082O setup \u2192 transport \u2192 microphysics+particles \u2192 outputs",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere. Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "Not identified yet"
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Map initial H\u2082O onto the 3D grid (only when needed)",
+    "overview": "sub_h2oinit_zpr_to_zgeo(zm1) interpolates the initial 1D H\u2082O profile onto the model\u2019s 3D pressure/height grid (zm1) producing hminit3d.\nThen your diagram shows two scalings:\nreduce by 10% (*0.9)\nscale by CH\u2084-related factor (*scale_ch4)\nIf hm is still zero (first time), it is initialized from this.",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "sub_h2oinit_zpr_to_zgeo"
+    ],
+    "variables": [
+      "hm",
+      "hminit3d"
+    ]
+  },
+  {
+    "id": 12,
+    "title": "Compute solar geometry and photolysis of H\u2082O",
+    "overview": "sub_zenit(...) computes zenith angle / solar illumination geometry (secchi)\nsub_photolyse(...) applies photodissociation to the H\u2082O field hm\nSo: even before dynamics transport, H\u2082O can be chemically reduced by light.",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere.",
+    "relevant_subroutines": [
+      "sub_zenit",
+      "sub_photolyse"
+    ],
+    "variables": [
+      "hm"
+    ]
+  },
+  {
+    "id": 13,
+    "title": "Update the background dynamics (winds, T, density)",
+    "overview": "Each hour, the model reads the next set of LIMA fields using sub_lesedyn(...) (um2, vm2, wm2, tm2, dm2, zm2).\nThen it blends time levels:\num = a1*um1 + a2*um2 (and same for v, w, T, \u03c1)\nThis is basically time interpolation / smoothing between two dynamic snapshots.\nThen again:\nsub_maxmin(...) CFL check, stop if unstable.",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "check",
+      "sub_lesedyn",
+      "sub_maxmin"
+    ],
+    "variables": [
+      "um1",
+      "um2",
+      "vm2",
+      "wm2"
+    ]
+  },
+  {
+    "id": 14,
+    "title": "Eulerian H\u2082O transport (advection)",
+    "overview": "There is an inner loop nlauf \u2264 4, and in it the model calls:\nsub_transwalcek(dttrans, dx, dy, dz, um, vm, wm, hm) twice\nso total advection corresponds to 180 s if dttrans=90 s\nThis is the Walcek-type monotonic advection step for the grid-based H\u2082O field.",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere. Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "sub_transwalcek"
+    ],
+    "variables": [
+      "hm",
+      "dttrans"
+    ]
+  },
+  {
+    "id": 15,
+    "title": "Vertical diffusion of H\u2082O (turbulence)",
+    "overview": "After advection:\ndttrans_2 = 2*dttrans\nsub_diffu_h2o(hm, dz, dttrans_2, turbkzz) applies turbulent vertical diffusion using turbkzz.\nSo H\u2082O evolution each hour is:\nadvect (x2 calls)\ndiffuse vertically (Kzz)\nphotolyse",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere. Vertical turbulent diffusion redistributes water vapor based on atmospheric stability.",
+    "relevant_subroutines": [
+      "sub_diffu_h2o"
+    ],
+    "variables": [
+      "hm",
+      "dttrans",
+      "turbkzz"
+    ]
+  },
+  {
+    "id": 16,
+    "title": "Photolysis again",
+    "overview": "After transport + diffusion, the code again computes zenith angle and applies photolysis using xlyman_obs (observed Lyman-alpha series).\nSo photolysis is applied to the H\u2082O field repeatedly as it evolves.\nNow the particle side: \u201cpick a particle and let it live\u201d",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere. Vertical turbulent diffusion redistributes water vapor based on atmospheric stability. Solar UV radiation dissociates water vapor molecules, affecting H\u2082O concentrations. Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "Not identified yet"
+    ]
+  },
+  {
+    "id": 17,
+    "title": "Particle microphysics + particle transport step",
+    "overview": "Then the model calls:\nsub_tracertransp\nThis is the heart of the Lagrangian part. Your diagram shows that inside it, for each particle n = 1..40 million:\n17a) Map particle position to grid cell\ni = int(xfeld(n))\nj = int(yfeld(n))\nk = int(zfeld(n))\n# 17b) Read background conditions at that cell\ntback = tm(j,i,k) (ambient temperature)\ncompute work1akt which is essentially pH2O derived from hm * dm (H\u2082O mixing ratio \u00d7 density \u2192 partial pressure proxy)\n17c) Decide whether the particle is eligible for ice microphysics\nIt checks something like:\nif rfeld(n) > rinit(n) \u2192 particle already has ice (or has grown)\nelse it\u2019s \u201cbare dust\u201d (nucleus)\n17d) Compute saturation and Kelvin effect\nFor the particle:\ncompute particle temperature tp (often close to tback)\ncompute saturation vapor pressure over curved surface Psat(r)\ncompute saturation ratio S(r) = P\u03b1 / Psat(r) (conceptually)\n# 17e) Growth condition\nIf conditions allow (example in diagram):\nif tback < 155 and S(r) > 1 \u2192 compute dr/dt and update radius:\nrfeld(n) = rfeld(n) + dr/dt * dt\nelse:\ndr/dt = 0, radius unchanged\nThis is the precise \u201ccheck if ice forming size/condition\u201d step you described.\n# 17f) Move the particle (advection + sedimentation + turbulent random part)\nThe diagram shows:\ncompute turbulent velocity and sedimentation velocity\nupdate xfeld, yfeld, zfeld using something like:\nx(t+dt) = x(t) + u*dt (and same for y, z with extra terms)\nSo each particle experiences:\nhorizontal advection by winds\nvertical motion = background w + sedimentation + turbulence",
+    "science_view": "Transport processes move water vapor and particles through the atmosphere. Ice nucleation occurs on dust particles when supersaturation conditions are met. Saturation vapor pressure depends on temperature and particle curvature (Kelvin effect). Ice particles fall due to gravitational settling, removing water from upper atmosphere.",
+    "relevant_subroutines": [
+      "check",
+      "sub_tracertransp"
+    ],
+    "variables": [
+      "hm",
+      "xfeld",
+      "yfeld",
+      "zfeld",
+      "rfeld",
+      "rinit"
+    ]
+  },
+  {
+    "id": 18,
+    "title": "Dust \u201creallocation\u201d to keep the CN population stable",
+    "overview": "After the particle update, the model does something very important:\nBare dust particles that move outside a defined nucleation domain are randomly relocated back into a dust injection region.\nYour diagram explicitly says:\n\u201cReallocation of bare dust particles inside and outside the defined boundary into dust injection zone.\u201d\nThis is exactly the mechanism that prevents the \u201cdust reservoir\u201d from leaking away in long runs:\nparticles don\u2019t permanently exit; they get recycled back into the source region (if bare).\n(Ice-coated particles are typically not relocated, so ice can exist outside the nucleation zone.)\nOutputs (what gets written and when)",
+    "science_view": "Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "Not identified yet"
+    ]
+  },
+  {
+    "id": 19,
+    "title": "Write diagnostics at selected hours",
+    "overview": "At specific hours (6/12/18/24):\nschreibe_beta0(...) computes and writes reduced microphysical outputs (e.g., backscatter, ice radius, number densities) into .betd19 files\nalso writes .hd19 files for hm (H\u2082O field)",
+    "science_view": "Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "schreibe_beta0"
+    ],
+    "variables": [
+      "hm"
+    ]
+  },
+  {
+    "id": 20,
+    "title": "Write particle positions occasionally",
+    "overview": "At specific days (10/20/30 as shown):\nschreibe_40mio(...) writes particle positions xfeld, yfeld, zfeld to .40md19 style output",
+    "science_view": "Ice nucleation occurs on dust particles when supersaturation conditions are met.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "xfeld",
+      "yfeld",
+      "zfeld"
+    ]
+  },
+  {
+    "id": 21,
+    "title": "Advance time",
+    "overview": "At the end of the hour:\nshift \u201ccurrent\u201d fields to previous (um1=um2, etc.)\nincrement hour, day, month loops",
+    "science_view": "See overview for details on this model's physics processes.",
+    "relevant_subroutines": [
+      "Not identified yet"
+    ],
+    "variables": [
+      "um1",
+      "um2"
+    ]
+  }
+]
