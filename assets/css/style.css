@@ -544,3 +544,31 @@ body {
 }
 
 
+/* ============================
+   Header branding (logos + title)
+   ============================ */
+.brand-wrap{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand-logo{
+  height:28px;
+  width:auto;
+  display:block;
+  object-fit:contain;
+  filter: grayscale(100%);
+  opacity: 0.95;
+}
+.brand-logo.institute{
+  height:26px;
+  opacity: 0.9;
+}
+.brand-title{
+  font-weight:800;
+  letter-spacing:0.6px;
+}
+@media (max-width: 520px){
+  .brand-title{ display:none; }
+  .navlinks a{ padding:8px 8px; }
+}
